@@ -14,10 +14,10 @@ hash_struct* initTable(int num_of_buckets){
   hash_struct* hshtab = (hash_struct*) malloc(sizeof(hash_struct)); //allocate memory for hashtable
   hshtab->num_of_buckets = num_of_buckets;
   //allocate memory for all the empty buckets
-  hshtab->buckets = malloc(num_of_buckets*sizeof(null_entry));
+  hshtab->buckets = (data_entry**) malloc(num_of_buckets*sizeof(data_entry*));
   //allocate memory for all the null buckets
   for (i = 0; i < num_of_buckets; i++) {
-    hshtab->buckets[i] = malloc(sizeof(null_entry));
+    hshtab->buckets[i] = (data_entry*) malloc(sizeof(null_entry));
     memcpy(hshtab->buckets[i], &null_entry, sizeof(null_entry));
   }
   return hshtab;
@@ -25,12 +25,17 @@ hash_struct* initTable(int num_of_buckets){
 
 
 /*
-* @input : Some key value.
+* @input : Some key value.   
 * @returns : The key value modulated by the size of the hash table.
 */
 
 int hashcode(hash_struct* table, int key){
-  return key % table->num_of_buckets;
+  if (key >= 0) {
+    return key % table->num_of_buckets;
+  } else {
+    return table->num_of_buckets + key % table->num_of_buckets;
+  }
+ 
 }
 
 /*
