@@ -9,7 +9,7 @@
 */
 
 hash_struct* initTable(int num_of_buckets){
-  int i;
+  int i;  
   data_entry null_entry = {-1, -1}; //this will be copied into each bucket
   hash_struct* hshtab = (hash_struct*) malloc(sizeof(hash_struct)); //allocate memory for hashtable
   hshtab->num_of_buckets = num_of_buckets;
@@ -18,7 +18,7 @@ hash_struct* initTable(int num_of_buckets){
   //allocate memory for all the null buckets
   for (i = 0; i < num_of_buckets; i++) {
     hshtab->buckets[i] = (data_entry*) malloc(sizeof(null_entry));
-    memcpy(hshtab->buckets[i], &null_entry, sizeof(null_entry));
+    memcpy(hshtab->buckets[i], &null_entry, sizeof(data_entry));
   }
   return hshtab;
 }
