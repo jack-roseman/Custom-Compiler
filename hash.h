@@ -25,7 +25,6 @@ hash_struct* initTable();
 
 int hashcode(hash_struct* table, int key);
 
-
 data_entry* get(hash_struct* table, int key);
 
 bool contains(hash_struct* table, int key);

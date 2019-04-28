@@ -1,44 +1,36 @@
 #include "tokenizer.h"
 
 //theToken is the token to be populated
-void read_token (token *theToken, FILE* in_file) {
+void read_token (token* theToken, FILE* in_file) {
   int i;
-  char buffer[MAX_TOKEN_LENGTH + 1];
-	char c = next_letter(in_file);
-	if (c == EOF) {
-			return;
-	}
-	buffer[0] = c;
-  for (i=1; i<MAX_TOKEN_LENGTH; i++) {
+  seek_letter(in_file);
+  read_string_into(theToken, in_file);
+	parse_token_type(theToken);
+  if (theToken->type == DEFUN) {
+    seek_letter(in_file);
+    read_string_into(theToken, in_file);
+  }
+}
+
+void read_string_into(token* theToken, FILE* in_file) {
+  char buffer[MAX_TOKEN_LENGTH];
+  char c;
+  int i = 0;
+  while (i < MAX_TOKEN_LENGTH) {
     c = fgetc(in_file);
-		if (c == EOF) {
-			return;
-		}
-    if (c == ' ' || c == '\n' || c == '\t' || c == ';') {
+    if (c == ' ' || c == '\n' || c == '\t' || c == ';' || c == EOF) {
+      ungetc(c, in_file);
       break;
     }
     buffer[i] = c;
+    i++;
   }
-	if (c == ';') {
-		c = skip_comment(in_file);
-	}
   buffer[i] = '\0';
-	strcpy(theToken->str, buffer);
-	parse_token_type(theToken, buffer);
-	
+  memcpy(theToken->str, buffer, (i+1)*sizeof(char));
 }
 
-
-char skip_comment(FILE* in_file) {
-	char c = fgetc(in_file);
-	while (c != '\n') {
-		c = fgetc(in_file);
-	}
-	//skip over new line
-	return fgetc(in_file);
-}
-
-char next_letter(FILE* in_file) {
+//in the case where we are expecting the next token to be separated by whitespace or a comment
+void seek_letter(FILE* in_file) {
 	char c = fgetc(in_file);
 	while (c == ' ' || c == ';' || c == '\n' || c == '\t') {
 		switch(c) {
@@ -50,144 +42,164 @@ char next_letter(FILE* in_file) {
 				break;
 		}
 	}
-	return c;
+  ungetc(c, in_file);
 }
 
-void parse_token_type(token* token, char* buffer) {
+//in the case we just want to skip a comment (skips rest of line)
+char skip_comment(FILE* in_file) {
+	char c = fgetc(in_file);
+	while (c != '\n') {
+		c = fgetc(in_file);
+    if (c == EOF) {
+      return EOF;
+    }
+	}
+	//skip over new line
+	return fgetc(in_file);
+}
+
+
+void parse_token_type(token* theToken) {
 	int i;
 	int is_number = 1;
-  char str[strlen(buffer)];
-  strcpy(str, buffer);
-  if (!strcmp(str, "+")) {
-    token->type = PLUS;
+  if (!strcmp(theToken->str, "+")) {
+    theToken->type = PLUS;
 		return;
   }
-	if (!strcmp(str, "-")) {
-    token->type = MINUS;
+	if (!strcmp(theToken->str, "-")) {
+    theToken->type = MINUS;
 		return;
   }
-	if (!strcmp(str, "*")) {
-    token->type = MUL;
+	if (!strcmp(theToken->str, "*")) {
+    theToken->type = MUL;
 		return;
   }
-	if (!strcmp(str, "/")) {
-    token->type = DIV;
+	if (!strcmp(theToken->str, "/")) {
+    theToken->type = DIV;
 		return;
   }
-	if (!strcmp(str, "%")) {
-    token->type = MOD;
+	if (!strcmp(theToken->str, "%")) {
+    theToken->type = MOD;
 		return;
   }
-	if (!strcmp(str, "^")) {
-    token->type = POW;
+	if (!strcmp(theToken->str, "^")) {
+    theToken->type = POW;
 		return;
   }
-	if (!strcmp(str, "eq")) {
-    token->type = EQ;
+	if (!strcmp(theToken->str, "eq")) {
+    theToken->type = EQ;
 		return;
   }
-	if (!strcmp(str, "lt")) {
-    token->type = LT;
+	if (!strcmp(theToken->str, "lt")) {
+    theToken->type = LT;
 		return;
   }
-	if (!strcmp(str, "gt")) {
-    token->type = GT; 
+	if (!strcmp(theToken->str, "gt")) {
+    theToken->type = GT; 
 		return;
   }
-	if (!strcmp(str, "le")) {
-    token->type = LE;
+	if (!strcmp(theToken->str, "le")) {
+    theToken->type = LE;
 		return;
   }
-	if (!strcmp(str, "ge")) {
-    token->type = GE;
+	if (!strcmp(theToken->str, "ge")) {
+    theToken->type = GE;
 		return;
   }
-	if (!strcmp(str, "and")) {
-    token->type = AND;
+	if (!strcmp(theToken->str, "and")) {
+    theToken->type = AND;
 		return;
   }
-	if (!strcmp(str, "or")) {
-    token->type = OR;
+	if (!strcmp(theToken->str, "or")) {
+    theToken->type = OR;
 		return;
   }
-	if (!strcmp(str, "xor")) {
-    token->type = XOR;
+	if (!strcmp(theToken->str, "xor")) {
+    theToken->type = XOR;
 		return;
   }
-	if (!strcmp(str, "not")) {
-    token->type = NOT;
+	if (!strcmp(theToken->str, "not")) {
+    theToken->type = NOT;
 		return;
   }
-	if (!strcmp(str, "drop")) {
-    token->type = DROP;
+	if (!strcmp(theToken->str, "drop")) {
+    theToken->type = DROP;
 		return;
   }
-	if (!strcmp(str, "dup")) {
-    token->type = DUP;
+	if (!strcmp(theToken->str, "dup")) {
+    theToken->type = DUP;
 		return;
   }
-	if (!strcmp(str, "swap")) {
-    token->type = SWAP;
+	if (!strcmp(theToken->str, "swap")) {
+    theToken->type = SWAP;
 		return;
   }
-	if (!strcmp(str, "min")) {
-    token->type = MIN;
+	if (!strcmp(theToken->str, "min")) {
+    theToken->type = MIN;
 		return;
   }
-	if (!strcmp(str, "abs")) {
-    token->type = ABS;
+	if (!strcmp(theToken->str, "abs")) {
+    theToken->type = ABS;
 		return;
   }
-	if (!strcmp(str, "avg")) {
-    token->type = AVG;
+	if (!strcmp(theToken->str, "avg")) {
+    theToken->type = AVG;
 		return;
   }
-	if (!strncmp(str, "arg", 3)) {
-		if (sscanf(str, "arg%d", &token->arg_no) == 1) {
-			token->type = ARG;
+	if (!strncmp(theToken->str, "arg", 3)) {
+		if (sscanf(theToken->str, "arg%d", &theToken->arg_no) == 1) {
+			theToken->type = ARG;
 		}else {
-			token->type = BROKEN_TOKEN;
+			theToken->type = BROKEN_TOKEN;
 		}
 		return;
   }
-	if (!strcmp(str, "defun")) {
-    token->type = DEFUN;
+	if (!strcmp(theToken->str, "defun")) {
+    theToken->type = DEFUN;
 		return;
   }
-	if (!strcmp(str, "ident")) {
-    token->type = IDENT;
+	if (!strcmp(theToken->str, "ident")) {
+    theToken->type = IDENT;
 		return;
   }
-	if (!strcmp(str, "return")) {
-    token->type = RETURN;
+	if (!strcmp(theToken->str, "return")) {
+    theToken->type = RETURN;
 		return;
   }
-	if (!strcmp(str, "if")) {
-    token->type = IF;
+	if (!strcmp(theToken->str, "if")) {
+    theToken->type = IF;
 		return;
   }
-	if (!strcmp(str, "else")) {
-    token->type = ELSE;
+	if (!strcmp(theToken->str, "else")) {
+    theToken->type = ELSE;
 		return;
   }
-	if (!strcmp(str, "endif")) {
-    token->type = ENDIF;
+	if (!strcmp(theToken->str, "endif")) {
+    theToken->type = ENDIF;
 		return;
   }
 	
-	for(i=0;i<strlen(str);i++){
-		is_number = is_number && (str[i] - '0' >= 0 && str[i] - '0' <= 9);
+  if (theToken->str[0] == '-') {
+    //negative
+    i = 1;
+  } else {
+    i = 0;
+  }
+  
+	for(i;i<strlen(theToken->str);i++){
+		is_number = is_number && (theToken->str[i] - '0' >= 0 && theToken->str[i] - '0' <= 9);
 		if (!is_number) {
-			token->type = BROKEN_TOKEN;
+			theToken->type = BROKEN_TOKEN;
 			return;
 		}
 	}
 	if (is_number && i > 0) {
-		sscanf(str, "%d", &token->literal_value);
-		token->type = LITERAL;
+		sscanf(theToken->str, "%d", &theToken->literal_value);
+		theToken->type = LITERAL;
 		return;
 	}
-	
+	theToken->type = BROKEN_TOKEN;
+	return;
 }
 
 //used for debugging

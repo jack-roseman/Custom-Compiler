@@ -14,7 +14,7 @@ hash_struct* initTable(int num_of_buckets){
   hash_struct* hshtab = (hash_struct*) malloc(sizeof(hash_struct)); //allocate memory for hashtable
   hshtab->num_of_buckets = num_of_buckets;
   //allocate memory for all the empty buckets
-  hshtab->buckets = (data_entry**) malloc(num_of_buckets*sizeof(data_entry*));
+  hshtab->buckets = (data_entry**) malloc(num_of_buckets*sizeof(null_entry));
   //allocate memory for all the null buckets
   for (i = 0; i < num_of_buckets; i++) {
     hshtab->buckets[i] = (data_entry*) malloc(sizeof(null_entry));
